@@ -1,0 +1,51 @@
+version: "3.9"
+
+services:
+  postgres:
+    image: postgres:15
+    container_name: floodwatch_db
+    environment:
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: password
+      POSTGRES_DB: floodwatch
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    ports:
+      - "5432:5432"
+      
+  pgadmin:
+    image: dpage/pgadmin4
+    container_name: floodwatch_pgadmin
+    environment:
+      PGADMIN_DEFAULT_EMAIL: admin@floodwatch.com
+      PGADMIN_DEFAULT_PASSWORD: Admin123!
+    ports:
+      - "5050:80"
+    depends_on:
+      - postgres
+
+  backend:
+    build: ./server
+    container_name: floodwatch_backend
+    environment:
+      DATABASE_URL: postgresql://postgres:password@postgres:5432/floodwatch
+      JWT_SECRET: supersecretkey
+      JWT_EXPIRES_IN: 1h
+      CORS_ORIGIN: http://localhost:3000
+    depends_on:
+      - postgres
+    ports:
+      - "5000:5000"
+
+  frontend:
+    build: .
+    container_name: floodwatch_frontend
+    environment:
+      VITE_API_URL: http://localhost:5000
+    depends_on:
+      - backend
+    ports:
+      - "3000:80"
+
+volumes:
+  postgres_data:

@@ -1,0 +1,139 @@
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap');
+
+:root {
+  --bs-font-sans-serif: 'Inter', system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+  --bs-body-font-family: var(--bs-font-sans-serif);
+}
+
+body {
+  font-family: var(--bs-font-sans-serif);
+  background-color: var(--bs-body-bg);
+  color: var(--bs-body-color);
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  transition: background-color 0.3s ease, color 0.3s ease;
+}
+
+.card, .navbar, .bg-body, .bg-body-secondary, .bg-body-tertiary, .text-body, .text-body-secondary, .border {
+  transition: background-color 0.3s ease, color 0.3s ease, border-color 0.3s ease;
+}
+
+/* Custom Scrollbar */
+::-webkit-scrollbar {
+  width: 8px;
+  height: 8px;
+}
+::-webkit-scrollbar-track {
+  background: transparent;
+}
+::-webkit-scrollbar-thumb {
+  background: #cbd5e1;
+  border-radius: 4px;
+}
+::-webkit-scrollbar-thumb:hover {
+  background: #94a3b8;
+}
+
+/* Utility Classes & Effects */
+.hover-bg-light:hover {
+  background-color: rgba(255, 255, 255, 0.1) !important;
+}
+
+.card-hover:hover {
+  transform: translateY(-4px);
+  box-shadow: 0 12px 24px rgba(0,0,0,0.06) !important;
+}
+
+.hover-scale:hover {
+  transform: scale(1.05);
+}
+
+.transition-all {
+  transition: all 0.25s ease-in-out;
+}
+
+.icon-shape {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  text-align: center;
+  vertical-align: middle;
+}
+
+/* Specific component tweaks */
+.sidebar {
+  box-shadow: 2px 0 10px rgba(0,0,0,0.1);
+}
+
+.hover-shadow-sm:hover {
+  box-shadow: 0 4px 12px rgba(0,0,0,0.05) !important;
+  background-color: #fff !important;
+}
+
+.fs-7 {
+  font-size: 0.85rem;
+}
+
+.backdrop-blur {
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+}
+
+.pulse-animation {
+  animation: pulse 2s infinite;
+}
+
+@keyframes pulse {
+  0% {
+    box-shadow: 0 0 0 0 rgba(220, 53, 69, 0.7);
+  }
+  70% {
+    box-shadow: 0 0 0 10px rgba(220, 53, 69, 0);
+  }
+  100% {
+    box-shadow: 0 0 0 0 rgba(220, 53, 69, 0);
+  }
+}
+
+/* Adjust leaflet z-index to stay below custom overlay components */
+.leaflet-container {
+  z-index: 1 !important;
+}
+
+.leaflet-control-container {
+  z-index: 2 !important;
+}
+
+/* Override z-index for our floating panel */
+.z-3 {
+  z-index: 3 !important;
+}
+.tracking-tight { letter-spacing: -0.025em; }
+.tracking-wider { letter-spacing: 0.05em; }
+
+/* Sidebar responsiveness */
+.sidebar {
+  transition: transform 0.3s ease-in-out;
+}
+
+@media (max-width: 767.98px) {
+  .sidebar {
+    position: fixed;
+    top: 0;
+    left: 0;
+    height: 100vh;
+    transform: translateX(-100%);
+    z-index: 1040 !important;
+  }
+  .sidebar.show {
+    transform: translateX(0);
+  }
+  .main-content {
+    width: 100% !important;
+  }
+}
+@media (min-width: 768px) {
+  .main-content {
+    width: calc(100% - 280px);
+  }
+}
