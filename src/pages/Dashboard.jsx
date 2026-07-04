@@ -60,7 +60,7 @@ const Dashboard = () => {
           status: filters.status
         });
 
-        const response = await fetch(`${API_URL}/api/stations?${queryParams}`, { headers });
+        const response = await fetch(`${API_URL}/api/stations/?${queryParams}`, { headers });
         if (!response.ok) throw new Error('Failed to fetch stations');
         
         const data = await response.json();
