@@ -43,13 +43,30 @@ def fetch_osrm_route(coords: List[Tuple[float, float]]) -> Dict[str, Any]:
     return data["routes"][0]
 
 def is_route_safe(route: Dict[str, Any], hazards: List[Dict[str, float]]) -> bool:
-    """Check if any point in the route falls within a hazard radius."""
+    """
+    Check if any point in the route falls within a hazard radius.
+    Allows a grace distance of 2.0km from the start and end coordinates
+    so that trips starting or ending near a hazard zone can still calculate detours.
+    """
     geometry = route.get("geometry", {}).get("coordinates", [])
+    if not geometry:
+        return True
+        
+    start_lon, start_lat = geometry[0]
+    end_lon, end_lat = geometry[-1]
+    
+    grace_dist_km = 2.0 # Allow 2km of travel to enter/exit a hazard zone
     
     for lon, lat in geometry:
         for hazard in hazards:
             dist = haversine(lat, lon, hazard["lat"], hazard["lon"])
             if dist <= hazard["radius_km"]:
+                # Check if this point is near the start or end of the trip
+                dist_to_start = haversine(lat, lon, start_lat, start_lon)
+                dist_to_end = haversine(lat, lon, end_lat, end_lon)
+                
+                if dist_to_start <= grace_dist_km or dist_to_end <= grace_dist_km:
+                    continue
                 return False
     return True
 
