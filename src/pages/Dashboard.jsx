@@ -5,6 +5,7 @@ import L from 'leaflet';
 import 'leaflet/dist/leaflet.css';
 import { Link } from 'react-router-dom';
 import StationStatusBadge from '../components/StationStatusBadge';
+import PredictionPanel from '../components/PredictionPanel';
 
 // Helper to create custom colored markers
 const getMarkerIcon = (status) => {
@@ -130,6 +131,10 @@ const Dashboard = () => {
         </div>
       </div>
 
+      {/* Prediction Panel Overlay */}
+      <div className="position-absolute top-0 end-0 m-3 z-3" style={{ zIndex: 1000, width: '320px', maxWidth: 'calc(100vw - 2rem)' }}>
+        <PredictionPanel />
+      </div>
 
       {/* Legend Overlay */}
       <div className="position-absolute bottom-0 start-0 m-3 p-3 bg-white bg-opacity-75 rounded-4 shadow-sm z-3" style={{ zIndex: 1000, backdropFilter: 'blur(10px)' }}>
