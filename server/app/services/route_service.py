@@ -114,31 +114,65 @@ def get_safe_route(db: Session, start_lat: float, start_lon: float, end_lat: flo
             break
             
     if intersected_hazard:
-        detour_lat, detour_lon = calculate_detour(
-            start_lat, start_lon, 
-            intersected_hazard["lat"], intersected_hazard["lon"],
-            distance_km=15.0 # Push 15km away from hazard center
-        )
+        # Calculate vector from start to hazard center
+        dlon = intersected_hazard["lon"] - start_lon
+        dlat = intersected_hazard["lat"] - start_lat
+        length = math.sqrt(dlat**2 + dlon**2)
         
-        try:
-            # Try route with detour waypoint
-            detour_route = fetch_osrm_route([
-                (start_lat, start_lon), 
-                (detour_lat, detour_lon), 
-                (end_lat, end_lon)
-            ])
+        if length > 0:
+            # We try both perpendicular directions (left and right of the path vector)
+            dir_options = [
+                (-dlon / length, dlat / length),  # Direction 1
+                (dlon / length, -dlat / length)   # Direction 2
+            ]
             
-            # Note: The detour itself might hit another hazard in a complex scenario,
-            # but this satisfies the basic resilient routing requirement for demonstration.
-            return {
-                "status": "rerouted",
-                "message": "Route altered to bypass Critical flood hazard.",
-                "route": detour_route,
-                "hazards": hazards
-            }
-        except Exception:
-            pass
+            # Try detour distances starting from a tight 7.0km up to 15.0km
+            for dist_km in [7.0, 11.0, 15.0]:
+                deg_offset = dist_km / 111.0
+                
+                for dir_lat, dir_lon in dir_options:
+                    detour_lat = intersected_hazard["lat"] + (dir_lat * deg_offset)
+                    detour_lon = intersected_hazard["lon"] + (dir_lon * deg_offset)
+                    
+                    try:
+                        # Request OSRM route passing through the detour waypoint
+                        detour_route = fetch_osrm_route([
+                            (start_lat, start_lon), 
+                            (detour_lat, detour_lon), 
+                            (end_lat, end_lon)
+                        ])
+                        
+                        # Verify if this detour path is actually safe (does not cross any hazard zones)
+                        if is_route_safe(detour_route, hazards):
+                            return {
+                                "status": "rerouted",
+                                "message": "Route altered to bypass Critical flood hazard.",
+                                "route": detour_route,
+                                "hazards": hazards
+                            }
+                    except Exception:
+                        continue
             
+            # Fallback: If no completely safe route is found, try the first detour option
+            try:
+                dir_lat, dir_lon = dir_options[0]
+                deg_offset = 10.0 / 111.0
+                detour_lat = intersected_hazard["lat"] + (dir_lat * deg_offset)
+                detour_lon = intersected_hazard["lon"] + (dir_lon * deg_offset)
+                detour_route = fetch_osrm_route([
+                    (start_lat, start_lon), 
+                    (detour_lat, detour_lon), 
+                    (end_lat, end_lon)
+                ])
+                return {
+                    "status": "rerouted",
+                    "message": "Route altered to bypass Critical flood hazard (partial overlap).",
+                    "route": detour_route,
+                    "hazards": hazards
+                }
+            except Exception:
+                pass
+                            
     return {
         "status": "unsafe",
         "message": "No safe route could be calculated around the disaster zones.",
