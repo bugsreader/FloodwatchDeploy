@@ -38,6 +38,9 @@ body {
 .hover-bg-light:hover {
   background-color: rgba(255, 255, 255, 0.1) !important;
 }
+.hover-notification:hover {
+  background-color: #f8f9fa !important;
+}
 
 .card-hover:hover {
   transform: translateY(-4px);
