@@ -146,6 +146,7 @@ def get_safe_route(db: Session, start_lat: float, start_lon: float, end_lat: flo
             # Try detour distances starting from a tight 7.0km up to 15.0km
             for dist_km in [7.0, 11.0, 15.0]:
                 deg_offset = dist_km / 111.0
+                safe_routes = []
                 
                 for dir_lat, dir_lon in dir_options:
                     detour_lat = intersected_hazard["lat"] + (dir_lat * deg_offset)
@@ -161,14 +162,19 @@ def get_safe_route(db: Session, start_lat: float, start_lon: float, end_lat: flo
                         
                         # Verify if this detour path is actually safe (does not cross any hazard zones)
                         if is_route_safe(detour_route, hazards):
-                            return {
-                                "status": "rerouted",
-                                "message": "Route altered to bypass Critical flood hazard.",
-                                "route": detour_route,
-                                "hazards": hazards
-                            }
+                            safe_routes.append(detour_route)
                     except Exception:
                         continue
+                
+                # If we found safe routes at this distance level, choose the one with the shortest distance!
+                if safe_routes:
+                    shortest_route = min(safe_routes, key=lambda r: r.get("distance", float('inf')))
+                    return {
+                        "status": "rerouted",
+                        "message": "Route altered to bypass Critical flood hazard.",
+                        "route": shortest_route,
+                        "hazards": hazards
+                    }
             
             # Fallback: If no completely safe route is found, try the first detour option
             try:
