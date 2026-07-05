@@ -12,7 +12,7 @@ const Sidebar = ({ isOpen, setIsOpen }) => {
           <div className="bg-primary rounded p-2 me-3 shadow-sm d-flex align-items-center justify-content-center">
             <i className="bi bi-tsunami fs-5 text-white"></i>
           </div>
-          <span className="fs-4 fw-bold tracking-tight">FlashFlood</span>
+          <span className="fs-4 fw-bold tracking-tight">FloodWatch</span>
         </a>
         <button
           className="btn btn-link text-white d-md-none p-0 ms-auto"
