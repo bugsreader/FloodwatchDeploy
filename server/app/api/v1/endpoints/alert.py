@@ -40,7 +40,7 @@ def get_proximity_alerts(
             FloodPrediction.station_id == station.station_id
         ).order_by(FloodPrediction.prediction_time.desc()).first()
         
-        if not latest_pred or latest_pred.threat_level not in ["High", "Critical"]:
+        if not latest_pred or latest_pred.flood_probability < 95.0:
             continue
             
         # Skip if station has no coordinates
