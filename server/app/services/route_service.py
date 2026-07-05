@@ -27,12 +27,17 @@ def get_critical_hazards(db: Session) -> List[Dict[str, float]]:
             })
     return hazards
 
-def fetch_osrm_route(coords: List[Tuple[float, float]]) -> Dict[str, Any]:
+def fetch_osrm_route(coords: List[Tuple[float, float]], is_detour: bool = False) -> Dict[str, Any]:
     """Fetch a route from OSRM given a list of (lat, lon) tuples."""
     # OSRM expects lon,lat;lon,lat
     coords_str = ";".join([f"{lon},{lat}" for lat, lon in coords])
     url = f"{OSRM_BASE_URL}/{coords_str}?overview=full&geometries=geojson"
     
+    if is_detour and len(coords) > 2:
+        # Treat intermediate detour coordinates as "via-points" (pass-throughs)
+        # instead of hard stops. This prevents OSRM from forcing u-turns.
+        url += f"&waypoints=0;{len(coords)-1}"
+        
     response = requests.get(url, timeout=10)
     response.raise_for_status()
     data = response.json()
@@ -131,9 +136,9 @@ def get_safe_route(db: Session, start_lat: float, start_lon: float, end_lat: flo
             break
             
     if intersected_hazard:
-        # Calculate vector from start to hazard center
-        dlon = intersected_hazard["lon"] - start_lon
-        dlat = intersected_hazard["lat"] - start_lat
+        # Calculate vector of the journey (from Start to End) to align detour perpendicularly
+        dlon = end_lon - start_lon
+        dlat = end_lat - start_lat
         length = math.sqrt(dlat**2 + dlon**2)
         
         if length > 0:
@@ -158,7 +163,7 @@ def get_safe_route(db: Session, start_lat: float, start_lon: float, end_lat: flo
                             (start_lat, start_lon), 
                             (detour_lat, detour_lon), 
                             (end_lat, end_lon)
-                        ])
+                        ], is_detour=True)
                         
                         # Verify if this detour path is actually safe (does not cross any hazard zones)
                         if is_route_safe(detour_route, hazards):
@@ -186,7 +191,7 @@ def get_safe_route(db: Session, start_lat: float, start_lon: float, end_lat: flo
                     (start_lat, start_lon), 
                     (detour_lat, detour_lon), 
                     (end_lat, end_lon)
-                ])
+                ], is_detour=True)
                 return {
                     "status": "rerouted",
                     "message": "Route altered to bypass Critical flood hazard (partial overlap).",
