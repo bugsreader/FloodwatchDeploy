@@ -297,10 +297,11 @@ def simulate_flood(db: Session) -> Dict[str, Any]:
     from app.models.forecast import WeatherForecast
     from app.services.prediction_service import run_prediction_job
     
-    # 1. Fetch 3 random stations
-    stations = db.query(RiverStation).limit(3).all()
+    # 1. Fetch fixed stations per user request
+    target_ids = ["3014495", "0020441WL"]
+    stations = db.query(RiverStation).filter(RiverStation.station_id.in_(target_ids)).all()
     if not stations:
-        raise Exception("No stations found in the database. Please run the normal scraper first.")
+        raise Exception("Target stations (3014495 or 0020441WL) not found in the database. Please run the normal scraper first.")
         
     for station in stations:
         # 2. Inject extreme water levels (danger_threshold + 2.0)
@@ -309,12 +310,6 @@ def simulate_flood(db: Session) -> Dict[str, Any]:
         
         station.latest_water_level_m = extreme_level
         
-        # Ensure station has coordinates so alerts and routing work in demo
-        if station.latitude is None or station.longitude is None:
-            # Mock coordinates around KL
-            station.latitude = 3.1390 + (0.05 * (len(stations) - stations.index(station)))
-            station.longitude = 101.6869 + (0.05 * (len(stations) - stations.index(station)))
-            
         db.add(RiverWaterLevel(
             station_id=station.station_id,
             water_level_m=extreme_level,
