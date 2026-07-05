@@ -353,8 +353,8 @@ def simulate_flood(db: Session) -> Dict[str, Any]:
 def clear_simulation(db: Session) -> Dict[str, Any]:
     from app.models.prediction import FloodPrediction
     
-    # 1. Delete all fake predictions
-    deleted_preds = db.query(FloodPrediction).filter(FloodPrediction.model_version == "demo-simulation").delete()
+    # 1. Delete all predictions to ensure a clean slate for the demo
+    deleted_preds = db.query(FloodPrediction).delete()
     
     # 2. To fully reset, we can reset station water levels to their normal threshold
     stations = db.query(RiverStation).all()
@@ -366,5 +366,5 @@ def clear_simulation(db: Session) -> Dict[str, Any]:
     
     return {
         "success": True,
-        "message": f"Successfully cleared simulation data. Removed {deleted_preds} simulated alerts and reset station levels."
+        "message": f"Successfully cleared simulation data. Removed {deleted_preds} prediction alerts and reset station levels."
     }
